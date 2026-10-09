@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PocketWise | Smart Finance</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7f5;
+      color: #183b32;
+    }
+    header {
+      background: #123d32;
+      color: white;
+      padding: 24px 8%;
+    }
+    header h1 { margin: 0; }
+    header p { color: #c6dfd3; }
+    main { max-width: 900px; margin: 35px auto; padding: 0 20px; }
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 18px #183b3210;
+    }
+    .balance { font-size: 32px; font-weight: bold; }
+    input, select, button {
+      padding: 12px;
+      border: 1px solid #ccd8d1;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+    input, select { width: 100%; margin: 6px 0 14px; }
+    button {
+      background: #176b50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .amount { font-size: 23px; font-weight: bold; }
+    li { padding: 12px 0; border-bottom: 1px solid #eee; }
+    @media(max-width: 500px) {
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>◈ PocketWise</h1>
+    <p>Your money. Your goals. Your future.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h3>Total Balance</h3>
+      <div class="balance" id="balance">₹0.00</div>
+      <p>Keep track of every rupee.</p>
+    </section>
+
+    <section class="stats">
+      <div class="card">
+        <p>Total Income</p>
+        <div class="amount" id="income">₹0.00</div>
+      </div>
+      <div class="card">
+        <p>Total Expenses</p>
+        <div class="amount" id="expenses">₹0.00</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Add Transaction</h2>
+      <form id="transactionForm">
+        <label for="description">Description</label>
+        <input id="description" placeholder="e.g. Books" required>
+
+        <label for="amount">Amount (₹)</label>
+        <input id="amount" type="number" min="0.01" step="0.01" placeholder="e.g. 250" required>
+
+        <label for="type">Transaction type</label>
+        <select id="type">
+          <option value="expense">Expense</option>
+          <option value="income">Income</option>
+        </select>
+
+        <button type="submit">+ Add Transaction</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Recent Transactions</h2>
+      <ul id="transactionList" style="list-style:none;padding:0">
+        <li>No transactions yet. Add your first one!</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const transactions = [];
+    const money = n => "₹" + n.toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    function render() {
+      const income = transactions
+        .filter(t => t.type === "income")
+        .reduce((sum, t) => sum + t.amount, 0);
+      const expenses = transactions
+        .filter(t => t.type === "expense")
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      document.getElementById("balance").textContent = money(income - expenses);
+      document.getElementById("income").textContent = money(income);
+      document.getElementById("expenses").textContent = money(expenses);
+
+      const list = document.getElementById("transactionList");
+      list.replaceChildren();
+
+      if (!transactions.length) {
+        const li = document.createElement("li");
+        li.textContent = "No transactions yet. Add your first one!";
+        list.appendChild(li);
+        return;
+      }
+
+      transactions.slice().reverse().forEach(t => {
+        const li = document.createElement("li");
+        li.textContent = `${t.description} — ${t.type === "income" ? "+" : "-"}${money(t.amount)}`;
+        list.appendChild(li);
+      });
+    }
+
+    document.getElementById("transactionForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const description = document.getElementById("description").value.trim();
+      const amount = Number(document.getElementById("amount").value);
+      const type = document.getElementById("type").value;
+
+      if (!description || !Number.isFinite(amount) || amount <= 0) return;
+
+      transactions.push({ description, amount, type });
+      e.target.reset();
+      render();
+    });
+  </script>
+</body>
+</html>
